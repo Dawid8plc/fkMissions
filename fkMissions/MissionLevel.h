@@ -149,7 +149,6 @@ public:
             }
         }
         else {
-            //not tested
             // Read width (2 bytes, little-endian)
             stream.read(reinterpret_cast<char*>(&width), sizeof(width));
 
