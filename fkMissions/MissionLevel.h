@@ -92,33 +92,7 @@ public:
 
             std::istringstream decompressedStream(output);
             Read(decompressedStream);
-
-            //// Read the rest of the compressed data
-            //std::vector<char> compressedData((std::istreambuf_iterator<char>(stream)),
-            //    std::istreambuf_iterator<char>());
-
-            //// Decompress the data
-            //uLongf decompressedSize = 1000000; // Adjust this size as needed
-            //std::vector<char> decompressedData(decompressedSize);
-
-            //int result = uncompress(reinterpret_cast<Bytef*>(decompressedData.data()), &decompressedSize,
-            //    reinterpret_cast<const Bytef*>(compressedData.data()), compressedData.size());
-
-            //if (result != Z_OK) {
-            //    std::cerr << "Decompression failed with error code: " << result << std::endl;
-            //    return;
-            //}
-
-            //decompressedData.resize(decompressedSize); // Resize to the actual decompressed size
-
-            //// Replace the original stream with a new stream containing the decompressed data
-            //std::istringstream decompressedStream(std::string(decompressedData.begin(), decompressedData.end()));
-            ////stream.swap(decompressedStream);
-            //Read(decompressedStream);
             return;
-        }
-        else {
-            stream.seekg(0, std::ios::beg); // Reset to the beginning of the file
         }
 
         stream.seekg(0, ios::beg); // Reset to the beginning of the file
