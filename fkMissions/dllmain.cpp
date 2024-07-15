@@ -244,7 +244,7 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
             //Get all default controls and fetch the used font
             CWnd* okBtn = passwordDialog->GetDlgItem(1);
             CWnd* cancelBtn = passwordDialog->GetDlgItem(2);
-            CWnd* passwordBox = passwordDialog->GetDlgItem(2135);
+            CEdit* passwordBox = (CEdit*)passwordDialog->GetDlgItem(2135);
             
 
             CDC *okBtnDC = okBtn->GetDC();
@@ -318,6 +318,8 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
             //Move original ui controls
 
             LoadLevel();
+
+            passwordBox->SetSel(-1);
 
             ogMissionModalWndProc = (WNDPROC)SetWindowLongPtr(returnVal, GWLP_WNDPROC, (LONG_PTR)MissionModalWndProc);
         }
