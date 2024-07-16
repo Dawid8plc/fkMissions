@@ -38,7 +38,9 @@ std::string mainPath;
 //Mission Modal
 
 CButton prevLvl;
+CButton prev5Lvl;
 CButton nextLvl;
+CButton next5Lvl;
 
 CStatic LevelNameLabel;
 
@@ -163,6 +165,34 @@ LRESULT CALLBACK MissionModalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
                     LoadLevel();
                 }
+            }
+            //Previous 5 Level
+            else if (wmId == 13)
+            {
+                bool load = selectedLevel != 1;
+
+                selectedLevel -= 5;
+
+                if (selectedLevel < 1)
+                    selectedLevel = 1;
+
+                if (load)
+                    LoadLevel();
+
+
+            }
+            //Next 5 Level
+            else if (wmId == 14)
+            {
+                bool load = selectedLevel != 45;
+
+                selectedLevel += 5;
+
+                if (selectedLevel > 45 || selectedLevel > completedLevels)
+                    selectedLevel = completedLevels >= 45 ? 45 : completedLevels + 1;
+
+                if (load)
+                    LoadLevel();
             }
             else {
                 return CallWindowProc(ogMissionModalWndProc, hWnd, message, wParam, lParam);
@@ -291,25 +321,39 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
             prevLvlRect.top = static_cast<int>(141 * dpiScaleFactor);
             prevLvlRect.bottom = static_cast<int>(161 * dpiScaleFactor);
 
+            RECT prev5LvlRect;
+            prev5LvlRect.left = static_cast<int>(36 * dpiScaleFactor);
+            prev5LvlRect.right = static_cast<int>(56 * dpiScaleFactor);
+            prev5LvlRect.top = static_cast<int>(141 * dpiScaleFactor);
+            prev5LvlRect.bottom = static_cast<int>(161 * dpiScaleFactor);
+
             RECT nextLvlRect;
             nextLvlRect.left = static_cast<int>(241 * dpiScaleFactor);
             nextLvlRect.right = static_cast<int>(261 * dpiScaleFactor);
             nextLvlRect.top = static_cast<int>(141 * dpiScaleFactor);
             nextLvlRect.bottom = static_cast<int>(161 * dpiScaleFactor);
 
+            RECT next5LvlRect;
+            next5LvlRect.left = static_cast<int>(216 * dpiScaleFactor);
+            next5LvlRect.right = static_cast<int>(236 * dpiScaleFactor);
+            next5LvlRect.top = static_cast<int>(141 * dpiScaleFactor);
+            next5LvlRect.bottom = static_cast<int>(161 * dpiScaleFactor);
+
             prevLvl.Create(L"<", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER, prevLvlRect, pWnd, 10);
+            prev5Lvl.Create(L"<<", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER, prev5LvlRect, pWnd, 13);
             nextLvl.Create(L">", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER, nextLvlRect, pWnd, 11);
+            next5Lvl.Create(L">>", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_CENTER, next5LvlRect, pWnd, 14);
             //Next and Prev level buttons
 
             //Level Name label
             LevelNameLabel.Create(L"Mission 1", WS_CHILD | WS_VISIBLE | SS_CENTER, CRect(
-                static_cast<int>(35 * dpiScaleFactor),
+                static_cast<int>(57 * dpiScaleFactor),  
                 static_cast<int>(141 * dpiScaleFactor),
-                static_cast<int>(236 * dpiScaleFactor),
+                static_cast<int>(218 * dpiScaleFactor),
                 static_cast<int>(161 * dpiScaleFactor)),
                 pWnd, 12);
             LevelNameLabel.SetFont(font);
-            //
+            //Level Name label
 
             //Move original ui controls
             passwordBox->SetWindowPos(NULL, static_cast<int>(11 * dpiScaleFactor), static_cast<int>(170 * dpiScaleFactor), static_cast<int>(250 * dpiScaleFactor), static_cast<int>(23 * dpiScaleFactor), SWP_NOZORDER);
