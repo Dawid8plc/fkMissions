@@ -258,7 +258,8 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
         if (title == L"Enter password to continue." || title == L"By kontynuowac wprowadz haslo." || title == L"Mit Paßwort fortsetzen" || title == L"Introducir clave para seguir" ||
             title == L"Introduce contraseña para continuar" || title == L"Entrer un mot de passe pour continuer" || title == L"Per continuare, invia parola d'ordine." ||
             title == L"Voer wachtwoord in om verder te gaan" || title == L"By kontynuować wprowadź hasło." || title == "Digite a senha para continuar" ||
-            title == L"Для продолжения введите пароль." || title == L"Ange lösenord för att fortsätta" || title == L"Introduz a palvra-passe para continuar")
+            title == L"Для продолжения введите пароль." || title == L"Ange lösenord för att fortsätta" || title == L"Introduz a palvra-passe para continuar" ||
+            title == L"Zadej heslo pro pokračování." || title == L"Zadej heslo pro pokracování.")
         {
             readReg();
             selectedLevel = completedLevels + 1;
@@ -422,7 +423,13 @@ void AssignLabels()
     {
         missionSelectText = _TEXT("Uppdrag Välj");
         missionText = _TEXT("Uppdrag");
-    }else
+    }
+    else if (lang == "cs")
+    {
+        missionSelectText = _TEXT("Výběr mise");
+        missionText = _TEXT("Mise");
+    }
+    else
     {
         missionSelectText = _TEXT("Mission Select");
         missionText = _TEXT("Mission");
