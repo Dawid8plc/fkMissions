@@ -242,6 +242,9 @@ void CenterWindowOnParent(CWnd* pParentWnd, CWnd* pChildWnd)
     pChildWnd->SetWindowPos(NULL, childLeft, childTop, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
+void* SingleplayerPasswordRes;
+
+
 //Function that hooks to the CreateDialogIndirectParamA method
 typedef HWND(WINAPI* CreateDialogIndirectParamAType)(HINSTANCE hInstance, LPCDLGTEMPLATEA lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 CreateDialogIndirectParamAType pCreateDialogIndirectParamA = nullptr; //original function pointer after hook
@@ -255,11 +258,8 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
     pWnd->GetWindowTextW(title);
 
     if (returnVal != NULL && !(LevelNameLabel.GetSafeHwnd() && ::IsWindow(LevelNameLabel.GetSafeHwnd()))) {
-        if (title == L"Enter password to continue." || title == L"By kontynuowac wprowadz haslo." || title == L"Mit Paßwort fortsetzen" || title == L"Introducir clave para seguir" ||
-            title == L"Introduce contraseña para continuar" || title == L"Entrer un mot de passe pour continuer" || title == L"Per continuare, invia parola d'ordine." ||
-            title == L"Voer wachtwoord in om verder te gaan" || title == L"By kontynuować wprowadź hasło." || title == "Digite a senha para continuar" ||
-            title == L"Для продолжения введите пароль." || title == L"Ange lösenord för att fortsätta" || title == L"Introduz a palvra-passe para continuar" ||
-            title == L"Zadej heslo pro pokračování." || title == L"Zadej heslo pro pokracování.")
+
+        if(SingleplayerPasswordRes == lpTemplate)
         {
             readReg();
             selectedLevel = completedLevels + 1;
@@ -436,6 +436,31 @@ void AssignLabels()
     }
 }
 
+void* GetResourcePointer(HINSTANCE hInstance, int resourceID, LPCWSTR resourceType) {
+    // Find the resource
+    HRSRC hRes = FindResource(hInstance, MAKEINTRESOURCE(resourceID), resourceType);
+    if (!hRes) {
+        //std::cerr << "Failed to find resource ID " << resourceID << "\n";
+        return nullptr;
+    }
+
+    // Load the resource
+    HGLOBAL hMem = LoadResource(hInstance, hRes);
+    if (!hMem) {
+        //std::cerr << "Failed to load resource ID " << resourceID << "\n";
+        return nullptr;
+    }
+
+    // Lock the resource and return the pointer
+    void* pResourceData = LockResource(hMem);
+    if (!pResourceData) {
+        //std::cerr << "Failed to lock resource ID " << resourceID << "\n";
+    }
+
+    return pResourceData;
+}
+
+
 void shutdown() {
 
     MH_Uninitialize();
@@ -473,6 +498,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             shutdown();
             return 1;
         }
+
+        SingleplayerPasswordRes = GetResourcePointer(GetModuleHandle(NULL), 2142, RT_DIALOG);
 
         Initialized = true;
 
