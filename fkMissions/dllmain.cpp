@@ -135,6 +135,9 @@ LRESULT CALLBACK MissionModalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 {
     switch (message)
     {
+    case WM_SETTEXT:
+        return DefWindowProcW(hWnd, message, wParam, lParam);
+        break;
     case WM_COMMAND:
     {
         int wmId = LOWORD(wParam);
@@ -242,8 +245,21 @@ void CenterWindowOnParent(CWnd* pParentWnd, CWnd* pChildWnd)
     pChildWnd->SetWindowPos(NULL, childLeft, childTop, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-void* SingleplayerPasswordRes;
+LPCSTR lastFoundResourceName = nullptr;
 
+//Function that hooks to the FindResourceA method
+typedef HRSRC (WINAPI* FindResourceAType)(HMODULE hModule, LPCSTR lpName, LPCSTR lpType);
+FindResourceAType pFindResourceA = nullptr; //original function pointer after hook
+FindResourceAType pFindResourceATarget; //original function pointer BEFORE hook do not call this!
+HRSRC WINAPI detourFindResourceA(HMODULE hModule, LPCSTR lpName, LPCSTR lpType)
+{
+	auto returnVal = pFindResourceA(hModule, lpName, lpType);
+
+    if((int)lpType == (int)MAKEINTRESOURCE(5))
+        lastFoundResourceName = lpName;
+
+    return returnVal;
+}
 
 //Function that hooks to the CreateDialogIndirectParamA method
 typedef HWND(WINAPI* CreateDialogIndirectParamAType)(HINSTANCE hInstance, LPCDLGTEMPLATEA lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
@@ -259,7 +275,7 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
 
     if (returnVal != NULL && !(LevelNameLabel.GetSafeHwnd() && ::IsWindow(LevelNameLabel.GetSafeHwnd()))) {
 
-        if(SingleplayerPasswordRes == lpTemplate)
+        if(lastFoundResourceName == (LPCSTR)0x85e)
         {
             readReg();
             selectedLevel = completedLevels + 1;
@@ -297,7 +313,7 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
             CenterWindowOnParent(CWnd::FromHandle(hWndParent), pWnd);
 
             //passwordDialog->SetWindowTextW(L"Mission Select");
-            passwordDialog->SetWindowTextW(missionSelectText);
+            //passwordDialog->SetWindowTextW(missionSelectText);
             //Move, resize and rename window
 
             //Level Preview
@@ -367,6 +383,8 @@ HWND WINAPI detourCreateDialogIndirectParamA(HINSTANCE hInstance, LPCDLGTEMPLATE
             passwordBox->SetSel(-1);
 
             ogMissionModalWndProc = (WNDPROC)SetWindowLongPtr(returnVal, GWLP_WNDPROC, (LONG_PTR)MissionModalWndProc);
+
+            passwordDialog->SetWindowTextW(missionSelectText);
         }
     }
     return returnVal;
@@ -429,37 +447,17 @@ void AssignLabels()
         missionSelectText = _TEXT("Výběr mise");
         missionText = _TEXT("Mise");
     }
+    else if (lang == "zh-Hans")
+    {
+        missionSelectText = _TEXT("选择任务");
+		missionText = _TEXT("任务");
+    }
     else
     {
         missionSelectText = _TEXT("Mission Select");
         missionText = _TEXT("Mission");
     }
 }
-
-void* GetResourcePointer(HINSTANCE hInstance, int resourceID, LPCWSTR resourceType) {
-    // Find the resource
-    HRSRC hRes = FindResource(hInstance, MAKEINTRESOURCE(resourceID), resourceType);
-    if (!hRes) {
-        //std::cerr << "Failed to find resource ID " << resourceID << "\n";
-        return nullptr;
-    }
-
-    // Load the resource
-    HGLOBAL hMem = LoadResource(hInstance, hRes);
-    if (!hMem) {
-        //std::cerr << "Failed to load resource ID " << resourceID << "\n";
-        return nullptr;
-    }
-
-    // Lock the resource and return the pointer
-    void* pResourceData = LockResource(hMem);
-    if (!pResourceData) {
-        //std::cerr << "Failed to lock resource ID " << resourceID << "\n";
-    }
-
-    return pResourceData;
-}
-
 
 void shutdown() {
 
@@ -499,7 +497,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             return 1;
         }
 
-        SingleplayerPasswordRes = GetResourcePointer(GetModuleHandle(NULL), 2142, RT_DIALOG);
+        if (MH_CreateHookApiEx(L"kernel32", "FindResourceA", &detourFindResourceA, reinterpret_cast<void**>(&pFindResourceA), reinterpret_cast<void**>(&pFindResourceATarget)) != MH_OK) {
+            shutdown();
+            return 1;
+        }
+
+        if (MH_EnableHook(reinterpret_cast<void**>(pFindResourceATarget)) != MH_OK) {
+            shutdown();
+            return 1;
+        }
 
         Initialized = true;
 
